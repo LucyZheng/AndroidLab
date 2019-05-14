@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Styles/Themes</string>
+    <string name="app_name">GrandDicionary</string>
     <string name="label_actionbar">Action Bar</string>
     <string name="label_toolbar">Toolbar</string>
     <string name="action_settings">Settings</string>

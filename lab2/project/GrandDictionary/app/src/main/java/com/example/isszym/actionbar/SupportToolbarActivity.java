@@ -1,16 +1,12 @@
 package com.example.isszym.actionbar;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 public class SupportToolbarActivity extends AppCompatActivity {
@@ -27,9 +23,8 @@ public class SupportToolbarActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         ActionBar actionBar = getSupportActionBar();
         //Display home with the "up" arrow indicator
-        actionBar.setTitle("简明英文词典");
+        actionBar.setTitle("简明英汉词典");
         actionBar.setSubtitle("中山大学");
-
     }
 
     @Override
@@ -46,13 +41,6 @@ public class SupportToolbarActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home:
-                Toast.makeText(this, "home", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.action1:
-                Intent intent = new Intent(this,SupportActionActivity.class);
-                startActivity(intent);
-                break;
             case R.id.action2:
                 Toast.makeText(this, "action2", Toast.LENGTH_SHORT).show();
                 break;
