@@ -1,6 +1,7 @@
 package com.example.isszym.actionbar;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -10,6 +11,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CursorAdapter;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -23,6 +29,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class SupportToolbarActivity extends AppCompatActivity {
+    ListView listview;
     private Database dbHelper;
     private Toolbar mToolbar;
 
@@ -39,6 +46,11 @@ public class SupportToolbarActivity extends AppCompatActivity {
         actionBar.setTitle("简明英汉词典");
         actionBar.setSubtitle("中山大学");
         dbHelper=new Database(this,"Dictionary.db",null,1);
+        dbHelper.getWritableDatabase();
+        listview=(ListView) findViewById(R.id.listview);
+        Cursor cursor=dbHelper.getReadableDatabase().rawQuery("select word as _id from dictionary;",null);
+        ListAdapter adapter=new SimpleCursorAdapter(this,R.layout.item,cursor,new String[]{"_id"},new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+        listview.setAdapter(adapter);
     }
 
     @Override
