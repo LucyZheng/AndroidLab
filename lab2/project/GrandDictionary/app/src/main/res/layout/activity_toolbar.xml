@@ -12,6 +12,5 @@
         android:background="?attr/colorPrimary"
         app:theme="@style/ThemeOverlay.AppCompat.Light"/>
 
-    <!-- Remaining application view contents here -->
 
 </LinearLayout>
