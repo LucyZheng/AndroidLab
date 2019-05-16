@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.a64635.grandwordremember.MainActivity">
+
+    <item
+        android:id="@+id/start_review"
+        android:orderInCategory="100"
+        android:title="开始复习"
+        app:showAsAction="never" />
+
+
+
+</menu>

@@ -1,12 +1,16 @@
 package com.example.isszym.actionbar;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,9 +34,10 @@ import java.net.URLConnection;
 
 public class SupportToolbarActivity extends AppCompatActivity {
     ListView listview;
-    private Database dbHelper;
     private Toolbar mToolbar;
-
+    ContentResolver resolver;
+    ListAdapter adapter;
+    Uri uri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,11 +50,12 @@ public class SupportToolbarActivity extends AppCompatActivity {
         //Display home with the "up" arrow indicator
         actionBar.setTitle("简明英汉词典");
         actionBar.setSubtitle("中山大学");
-        dbHelper=new Database(this,"Dictionary.db",null,1);
-        dbHelper.getWritableDatabase();
+        uri = Uri.parse("content://com.example.providers.firstprovider1/");
+        resolver = getContentResolver();
         listview=(ListView) findViewById(R.id.listview);
-        Cursor cursor=dbHelper.getReadableDatabase().rawQuery("select word as _id from dictionary;",null);
-        ListAdapter adapter=new SimpleCursorAdapter(this,R.layout.item,cursor,new String[]{"_id"},new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+//        Cursor cursor=dbHelper.getReadableDatabase().rawQuery("select word as _id from dictionary;",null);
+        Cursor cursor = resolver.query(uri, new String[]{"word as _id"}, null,null,null);
+        adapter=new SimpleCursorAdapter(this,R.layout.item,cursor,new String[]{"_id"},new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         listview.setAdapter(adapter);
     }
 
@@ -82,6 +88,7 @@ public class SupportToolbarActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    Log.d("out:", "downloading...");
                     String tmp="http://172.18.187.9:8080/dict/";
                     URL url=new URL(tmp);
                     URLConnection connection=url.openConnection();
@@ -97,9 +104,15 @@ public class SupportToolbarActivity extends AppCompatActivity {
                     JSONArray jsonArray=new JSONArray(str);
                     for (int i=0;i<jsonArray.length();++i){
                         WordRec wordRec=parserJSON(jsonArray.get(i).toString());
-                        SQLiteDatabase tmp2=dbHelper.getWritableDatabase();
-                        tmp2.execSQL("insert into dictionary(word,explanation,level) values (?,?,?)",new Object[]{wordRec.getWord(),wordRec.getExplanation(),wordRec.getLevel()});
-                        tmp2.close();
+                        Log.v("out:", wordRec.toString());
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put("word", wordRec.getWord());
+                        contentValues.put("explanation", wordRec.getExplanation());
+                        contentValues.put("level", wordRec.getLevel());
+//                        SQLiteDatabase tmp2=dbHelper.getWritableDatabase();
+//                        tmp2.execSQL("insert into dictionary(word,explanation,level) values (?,?,?)",new Object[]{wordRec.getWord(),wordRec.getExplanation(),wordRec.getLevel()});
+//                        tmp2.close();
+                        resolver.insert(uri, contentValues);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();

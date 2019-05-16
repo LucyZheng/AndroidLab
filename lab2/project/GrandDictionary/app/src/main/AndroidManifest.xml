@@ -15,7 +15,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity></application>
+        </activity>
+        <provider
+            android:exported="true"
+            android:name=".DictProvider"
+            android:authorities="com.example.providers.firstprovider1">
+        </provider>
+
+    </application>
 
 
 </manifest>
