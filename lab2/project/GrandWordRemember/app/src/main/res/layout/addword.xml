@@ -46,5 +46,15 @@
 			android:inputType="phone"
 			android:selectAllOnFocus="true" />
 	</TableRow>
+	<TableRow>
+		<CheckedTextView
+			android:id="@+id/cb"
+			android:text="是否覆盖"
+			android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+			android:gravity="center"
+			android:checked="true"
+			android:onClick="clicker"
+			/>
+	</TableRow>
 </TableLayout>
 

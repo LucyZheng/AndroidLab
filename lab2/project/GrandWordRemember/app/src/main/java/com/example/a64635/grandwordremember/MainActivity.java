@@ -14,6 +14,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CheckedTextView;
 import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.Toast;
@@ -26,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     ContentResolver resolver;
     private AlertDialog alertDialog = null;
     private AlertDialog.Builder dialogBuilder = null;
+    CheckedTextView textView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,16 +39,27 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setSubtitle("快速记忆法");
         resolver = getContentResolver();
         uri = Uri.parse("content://com.example.providers.firstprovider1/");
-        mContext=this;
+        mContext = this;
 
 
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
+    public void ifupdate(ContentResolver resolver, Context mContext, ContentValues contentValues, int i, EditText newword) {
+        if (i == 0) {
+            Toast.makeText(mContext, "单词已存在", Toast.LENGTH_SHORT).show();
+        } else {
+            resolver.update(uri, contentValues, "word=?", new String[]{String.valueOf(newword.getText())});
+            Toast.makeText(mContext, "覆盖成功", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void customView() {
         TableLayout wordadd = (TableLayout) getLayoutInflater()
                 .inflate(R.layout.addword, null);
@@ -64,31 +78,35 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        EditText newword=(EditText)alertDialog.findViewById(R.id.new_word);
-                        EditText wordex=(EditText)alertDialog.findViewById(R.id.word_exp);
-                        EditText level=(EditText)alertDialog.findViewById(R.id.level);
-                        Cursor cursor = resolver.query(uri, new String[]{"word as _id"}, " _id=?",new String[]{String.valueOf(newword.getText())},null);
+                        EditText newword = (EditText) alertDialog.findViewById(R.id.new_word);
+                        EditText wordex = (EditText) alertDialog.findViewById(R.id.word_exp);
+                        EditText level = (EditText) alertDialog.findViewById(R.id.level);
+                        Cursor cursor = resolver.query(uri, new String[]{"word as _id"}, " _id=?", new String[]{String.valueOf(newword.getText())}, null);
                         ContentValues contentValues = new ContentValues();
                         contentValues.put("word", String.valueOf(newword.getText()));
                         contentValues.put("explanation", String.valueOf(wordex.getText()));
                         contentValues.put("level", Integer.parseInt(String.valueOf(level.getText())));
-                        if (cursor.getCount()==0){
+                        if (cursor.getCount() == 0) {
                             resolver.insert(uri, contentValues);
                             Toast.makeText(mContext, "添加成功", Toast.LENGTH_SHORT).show();
+                        } else {
+                            textView = (CheckedTextView) alertDialog.findViewById(R.id.cb);
+                            if (textView.isChecked()) {
+                                resolver.update(uri, contentValues, "word=?", new String[]{String.valueOf(newword.getText())});
+                                Toast.makeText(mContext, "覆盖成功", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Toast.makeText(mContext, "单词已存在", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                        else{
-                            resolver.update(uri,contentValues,"word=?",new String[]{String.valueOf(newword.getText())});
-                            Toast.makeText(mContext, "覆盖成功", Toast.LENGTH_SHORT).show();
-
-                        }
-
                     }
                 })
                 .create();             // 创建AlertDialog对象
-        if(!isFinishing()){
+        if (!isFinishing()) {
             alertDialog.show();
         }
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -97,14 +115,18 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.entertest ){
-            Intent intent = new Intent(this,SecondActivity.class);
+        if (id == R.id.entertest) {
+            Intent intent = new Intent(this, SecondActivity.class);
             startActivity(intent);
             return true;
-        }
-        else if (id==R.id.add_word){
+        } else if (id == R.id.add_word) {
             customView();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void clicker(View v) {
+        CheckedTextView checkedTextView = (CheckedTextView) v;
+        checkedTextView.toggle();
     }
 }
