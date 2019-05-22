@@ -9,7 +9,8 @@
         android:id="@+id/add_word"
         android:orderInCategory="100"
         android:title="新增单词"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        />
     <item
         android:id="@+id/stat"
         android:orderInCategory="100"

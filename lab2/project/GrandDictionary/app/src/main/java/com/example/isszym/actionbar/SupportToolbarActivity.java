@@ -109,9 +109,6 @@ public class SupportToolbarActivity extends AppCompatActivity {
                         contentValues.put("word", wordRec.getWord());
                         contentValues.put("explanation", wordRec.getExplanation());
                         contentValues.put("level", wordRec.getLevel());
-//                        SQLiteDatabase tmp2=dbHelper.getWritableDatabase();
-//                        tmp2.execSQL("insert into dictionary(word,explanation,level) values (?,?,?)",new Object[]{wordRec.getWord(),wordRec.getExplanation(),wordRec.getLevel()});
-//                        tmp2.close();
                         resolver.insert(uri, contentValues);
                     }
                 } catch (Exception ex) {

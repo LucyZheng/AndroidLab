@@ -89,10 +89,7 @@ public class Myadapter extends BaseAdapter {
             holder.tv = (TextView) convertView.findViewById(R.id.word);
             convertView.setTag(holder);
 
-        }else{
-            holder = (ViewHolder) convertView.getTag();
-        }
-
+        }else holder = (ViewHolder) convertView.getTag();
         ArrayList<Object> list2 = new ArrayList<>();
         if (!map.containsKey(position)) {
             list2.add(position);
@@ -118,13 +115,10 @@ public class Myadapter extends BaseAdapter {
         holder.rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
             @Override
             public void onCheckedChanged(RadioGroup rg,int index){
-                if (index>-1){
-                    ifcheck.put(position,index);
-                }
+                if (index>-1) ifcheck.put(position,index);
                 else if(ifcheck.indexOfKey(position) > -1) ifcheck.removeAt(ifcheck.indexOfKey(position));
             }
         });
-
         return convertView;
     }
 
