@@ -1,28 +1,41 @@
 package com.example.isszym.actionbar;
 
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Intent;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.CheckedTextView;
 import android.widget.CursorAdapter;
-import android.widget.ListAdapter;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.PopupMenu;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,22 +43,45 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+
+import static com.example.isszym.actionbar.R.id.textView;
 
 public class SupportToolbarActivity extends AppCompatActivity {
     ListView listview;
     private Toolbar mToolbar;
     ContentResolver resolver;
-    ListAdapter adapter;
+    SimpleCursorAdapter adapter;
+    Cursor cursor;
     Uri uri;
     TextView textViewbottom;
+    private Context mContext;
+    String tmpword;
+    private boolean isopen = true;
+    private AlertDialog alertDialog = null;
+    private AlertDialog.Builder dialogBuilder = null;
+    CheckedTextView textView2;
+
+    private HorizontalScrollView horizontalScrollView;
+    private LinearLayout container;
+    private String alphabet[] = new String[]{" ", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
+    private ArrayList<String> data = new ArrayList<>();
+    private TextView testTextViewguard;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_toolbar);
-
+        mContext = this;
         //We have to tell the activity where the toolbar is
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
@@ -54,24 +90,233 @@ public class SupportToolbarActivity extends AppCompatActivity {
         actionBar.setTitle("简明英汉词典");
         actionBar.setSubtitle("中山大学");
         uri = Uri.parse("content://com.example.providers.firstprovider1/");
+
+        setguard();
+
         resolver = getContentResolver();
-        listview=(ListView) findViewById(R.id.listview);
+        listview = (ListView) findViewById(R.id.listview);
 //        Cursor cursor=dbHelper.getReadableDatabase().rawQuery("select word as _id from dictionary;",null);
-        Cursor cursor = resolver.query(uri, new String[]{"word as _id"}, null,null,null);
-        adapter=new SimpleCursorAdapter(this,R.layout.item,cursor,new String[]{"_id"},new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+        cursor = resolver.query(uri, new String[]{"word as _id"}, null, null, null);
+        adapter = new SimpleCursorAdapter(this, R.layout.item, cursor, new String[]{"_id"}, new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         listview.setAdapter(adapter);
-        textViewbottom=(TextView)findViewById(R.id.textView);
+
+        textViewbottom = (TextView) findViewById(textView);
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TextView nowclick=(TextView) view.findViewById(R.id.word);
-                String tmpword=nowclick.getText().toString();
-                Cursor cursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, " _id=?", new String[]{tmpword}, null);
-                cursor.moveToFirst();
-                textViewbottom.setText(tmpword+"\n"+cursor.getString(cursor.getColumnIndex("explanation")));
+                TextView nowclick = (TextView) view.findViewById(R.id.word);
+                String tmpword = nowclick.getText().toString();
+                Cursor cursor2 = resolver.query(uri, new String[]{"word as _id,explanation,level"}, " _id=?", new String[]{tmpword}, null);
+                cursor2.moveToFirst();
+                textViewbottom.setText(tmpword + "\n" + cursor2.getString(cursor2.getColumnIndex("explanation")));
             }
         });
+        listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                PopupMenu popup = new PopupMenu(SupportToolbarActivity.this, view);
+                popup.getMenuInflater().inflate(R.menu.menu_pop, popup.getMenu());
+                TextView nowclick = (TextView) view.findViewById(R.id.word);
+                final int position = i;
+                tmpword = nowclick.getText().toString();
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.delete:
+                                simpledelete();
+                                break;
+                            case R.id.correct:
+                                simplecorrect();
+                                break;
+                        }
+                        return true;
+                    }
+                });
+                popup.show();
+                return true;
+            }
 
+        });
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+    public void setguard(){
+        Collections.addAll(data, alphabet);
+        horizontalScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
+        container = (LinearLayout) findViewById(R.id.horizontalScrollViewItemContainer);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.CENTER;
+        layoutParams.setMargins(20, 10, 20, 10);
+        for (int i = 0; i < data.size(); i++)
+        {
+            TextView textView = new TextView(this);
+            textView.setText(data.get(i));
+            textView.setTextSize(15);
+            textView.setWidth(40);
+            textView.setGravity(Gravity.CENTER);
+            textView.setBackgroundColor(Color.rgb(255 ,228, 225));
+            textView.setLayoutParams(layoutParams);
+            container.addView(textView);
+            container.invalidate();
+        }
+    }
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("SupportToolbar Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
+
+    private class RefreshList extends AsyncTask<Void, Void, Cursor> {
+        protected Cursor doInBackground(Void... params) {
+            Cursor newCursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, null, null, " _id");
+            return newCursor;
+        }
+
+        protected void onPostExecute(Cursor newCursor) {
+            adapter.changeCursor(newCursor);
+            cursor.close();
+            cursor = newCursor;
+        }
+    }
+
+
+    public void simpledelete() {
+        dialogBuilder = new AlertDialog.Builder(mContext);
+        alertDialog = dialogBuilder
+                .setTitle("删除单词")
+                .setMessage("是否确定要删除该单词？")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(mContext, "取消删除", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        resolver.delete(uri, "word=?", new String[]{tmpword});
+                        new RefreshList().execute();
+                        Toast.makeText(mContext, "删除成功", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .create();             // 创建AlertDialog对象
+        alertDialog.show();             // 显示对话框
+    }
+
+    public void simplecorrect() {
+        TableLayout wordadd = (TableLayout) getLayoutInflater()
+                .inflate(R.layout.correctword, null);
+        dialogBuilder = new AlertDialog.Builder(mContext);
+        alertDialog = dialogBuilder
+                // 设置对话框标题
+                .setTitle("修改单词")
+                // 设置对话框显示的View对象
+                .setView(wordadd)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(mContext, "取消修改", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EditText wordex = (EditText) alertDialog.findViewById(R.id.word_exp);
+                        EditText level = (EditText) alertDialog.findViewById(R.id.level);
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put("word", tmpword);
+                        contentValues.put("explanation", String.valueOf(wordex.getText()));
+                        contentValues.put("level", Integer.parseInt(String.valueOf(level.getText())));
+                        resolver.update(uri, contentValues, "word=?", new String[]{tmpword});
+                        new RefreshList().execute();
+                        Toast.makeText(mContext, "修改成功", Toast.LENGTH_SHORT).show();
+                        textViewbottom.setText(tmpword + "\n" + String.valueOf(wordex.getText()));
+
+                    }
+                })
+                .create();             // 创建AlertDialog对象
+        alertDialog.show();
+
+    }
+
+    public void addword() {
+        TableLayout wordadd = (TableLayout) getLayoutInflater()
+                .inflate(R.layout.addword, null);
+        dialogBuilder = new AlertDialog.Builder(mContext);
+        alertDialog = dialogBuilder
+                // 设置对话框标题
+                .setTitle("添加单词")
+                // 设置对话框显示的View对象
+                .setView(wordadd)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(mContext, "取消添加", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EditText newword = (EditText) alertDialog.findViewById(R.id.new_word);
+                        EditText wordex = (EditText) alertDialog.findViewById(R.id.word_exp);
+                        EditText level = (EditText) alertDialog.findViewById(R.id.level);
+                        Cursor cursor = resolver.query(uri, new String[]{"word as _id"}, " _id=?", new String[]{String.valueOf(newword.getText())}, null);
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put("word", String.valueOf(newword.getText()));
+                        contentValues.put("explanation", String.valueOf(wordex.getText()));
+                        contentValues.put("level", Integer.parseInt(String.valueOf(level.getText())));
+                        if (cursor.getCount() == 0) {
+                            resolver.insert(uri, contentValues);
+                            new RefreshList().execute();
+                            Toast.makeText(mContext, "添加成功", Toast.LENGTH_SHORT).show();
+                        } else {
+                            textView2 = (CheckedTextView) alertDialog.findViewById(R.id.cb);
+                            if (textView2.isChecked()) {
+                                resolver.update(uri, contentValues, "word=?", new String[]{String.valueOf(newword.getText())});
+                                Toast.makeText(mContext, "覆盖成功", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(mContext, "单词已存在", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                })
+                .create();             // 创建AlertDialog对象
+        if (!isFinishing()) {
+            alertDialog.show();
+        }
     }
 
     @Override
@@ -84,41 +329,43 @@ public class SupportToolbarActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.support, menu);
         return true;
     }
-    public static WordRec parserJSON(String str){
-        JSONObject jsonObject=null;
-        try{
-            jsonObject=new JSONObject(str);
 
-        }catch (Exception ex){
+    public static WordRec parserJSON(String str) {
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(str);
+
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
-        WordRec wordRec=new WordRec();
+        WordRec wordRec = new WordRec();
         wordRec.setWord(jsonObject.optString("word"));
         wordRec.setExplanation(jsonObject.optString("explanation"));
         wordRec.setLevel(Integer.parseInt(jsonObject.optString("level")));
-        return  wordRec;
+        return wordRec;
     }
-    public void getdata(){
+
+    public void getdata() {
         new Thread() {
             @Override
             public void run() {
                 try {
                     Log.d("out:", "downloading...");
-                    String tmp="http://172.18.187.9:8080/dict/";
-                    URL url=new URL(tmp);
-                    URLConnection connection=url.openConnection();
-                    InputStream inputStream=connection.getInputStream();
+                    String tmp = "http://172.18.187.9:8080/dict/";
+                    URL url = new URL(tmp);
+                    URLConnection connection = url.openConnection();
+                    InputStream inputStream = connection.getInputStream();
                     InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                    BufferedReader bufferedReader=new BufferedReader(inputStreamReader);
-                    StringBuilder stringBuilder= new StringBuilder();
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                    StringBuilder stringBuilder = new StringBuilder();
                     String line;
-                    while((line=bufferedReader.readLine())!=null){
+                    while ((line = bufferedReader.readLine()) != null) {
                         stringBuilder.append(line);
                     }
-                    String str=stringBuilder.toString();
-                    JSONArray jsonArray=new JSONArray(str);
-                    for (int i=0;i<jsonArray.length();++i){
-                        WordRec wordRec=parserJSON(jsonArray.get(i).toString());
+                    String str = stringBuilder.toString();
+                    JSONArray jsonArray = new JSONArray(str);
+                    for (int i = 0; i < jsonArray.length(); ++i) {
+                        WordRec wordRec = parserJSON(jsonArray.get(i).toString());
                         Log.v("out:", wordRec.toString());
                         ContentValues contentValues = new ContentValues();
                         contentValues.put("word", wordRec.getWord());
@@ -138,8 +385,9 @@ public class SupportToolbarActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action2:
-                Toast.makeText(this, "action2", Toast.LENGTH_SHORT).show();
+            case R.id.addword:
+                addword();
+
                 break;
             case R.id.menu1:
                 getdata();
