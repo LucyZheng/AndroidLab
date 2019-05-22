@@ -14,12 +14,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -38,6 +40,7 @@ public class SupportToolbarActivity extends AppCompatActivity {
     ContentResolver resolver;
     ListAdapter adapter;
     Uri uri;
+    TextView textViewbottom;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +60,18 @@ public class SupportToolbarActivity extends AppCompatActivity {
         Cursor cursor = resolver.query(uri, new String[]{"word as _id"}, null,null,null);
         adapter=new SimpleCursorAdapter(this,R.layout.item,cursor,new String[]{"_id"},new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         listview.setAdapter(adapter);
+        textViewbottom=(TextView)findViewById(R.id.textView);
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                TextView nowclick=(TextView) view.findViewById(R.id.word);
+                String tmpword=nowclick.getText().toString();
+                Cursor cursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, " _id=?", new String[]{tmpword}, null);
+                cursor.moveToFirst();
+                textViewbottom.setText(tmpword+"\n"+cursor.getString(cursor.getColumnIndex("explanation")));
+            }
+        });
+
     }
 
     @Override
