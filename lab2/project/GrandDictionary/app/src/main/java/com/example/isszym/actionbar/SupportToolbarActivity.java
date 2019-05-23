@@ -1,6 +1,7 @@
 package com.example.isszym.actionbar;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,6 +12,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -79,6 +82,8 @@ public class SupportToolbarActivity extends AppCompatActivity {
     private ArrayList<String> data = new ArrayList<>();
     private TextView testTextViewguard;
     String guardword;
+    ProgressDialog pd;
+    int ifover;
 
 
     @Override
@@ -99,7 +104,6 @@ public class SupportToolbarActivity extends AppCompatActivity {
 
         resolver = getContentResolver();
         listview = (ListView) findViewById(R.id.listview);
-//        Cursor cursor=dbHelper.getReadableDatabase().rawQuery("select word as _id from dictionary;",null);
         cursor = resolver.query(uri, new String[]{"word as _id,explanation"}, null, null, "_id");
         cursor2 = resolver.query(uri, new String[]{"word as _id,explanation"}, null, null, "_id");
         adapter = new SimpleCursorAdapter(this, R.layout.item, cursor, new String[]{"_id"}, new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
@@ -162,6 +166,28 @@ public class SupportToolbarActivity extends AppCompatActivity {
         });
     }
 
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message message) {
+            if (message.what == 0)
+            {
+                Log.v("lll",String.valueOf(ifover));
+                pd.setProgress(ifover);}
+            else if (message.what == 1) {
+                new RefreshList().execute();
+            }
+        }
+    };
+    public void show(int max_length) {
+        pd = new ProgressDialog(SupportToolbarActivity.this);
+        pd.setMax(max_length);
+        pd.setTitle("下载单词");
+        pd.setCancelable(false);
+        pd.setProgressStyle(pd.STYLE_HORIZONTAL);
+        pd.setIndeterminate(false);
+        pd.show();
+
+    }
     public void setguard() {
         Collections.addAll(data, alphabet);
         horizontalScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
@@ -447,6 +473,7 @@ public class SupportToolbarActivity extends AppCompatActivity {
     }
 
     public void getdata() {
+        show(100);
         new Thread() {
             @Override
             public void run() {
@@ -473,7 +500,11 @@ public class SupportToolbarActivity extends AppCompatActivity {
                         contentValues.put("explanation", wordRec.getExplanation());
                         contentValues.put("level", wordRec.getLevel());
                         resolver.insert(uri, contentValues);
+                        ifover = 100 * (i + 1) / jsonArray.length();
+                        handler.sendEmptyMessage(0);
                     }
+                    pd.dismiss();
+                    handler.sendEmptyMessage(1);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

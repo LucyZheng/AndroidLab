@@ -1,8 +1,10 @@
 package com.example.a64635.grandwordremember;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -29,13 +31,11 @@ import static com.example.a64635.grandwordremember.R.id.listview;
 
 public class SecondActivity extends AppCompatActivity {
     Toolbar toolbar;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
+    Database dbHelper;
     ContentResolver resolver;
     Myadapter adapter;
     ListView listview;
+    Uri uri_user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,23 +48,38 @@ public class SecondActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
         String urii="content://com.example.providers.firstprovider1/";
         ArrayList mylist=new ArrayList<WordRec>();
-        Uri uri_user = Uri.parse(urii);
+        uri_user = Uri.parse(urii);
         resolver = getContentResolver();
         listview=(ListView) findViewById(R.id.listview);
         Cursor cursor = resolver.query(uri_user, new String[]{"word as _id,explanation,level"}, null,null,"_id limit 10");
         String[] exp=new String[10];
         int i=0;
+        dbHelper= new Database(this,"rememberword.db",null,1);
+        dbHelper.getWritableDatabase();
+        SQLiteDatabase db=dbHelper.getWritableDatabase();
+        ContentValues values=new ContentValues();
         for (cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext()){
+
             WordRec tmp=new WordRec();
             tmp.setWord(cursor.getString(cursor.getColumnIndex("_id")));
             tmp.setExplanation(cursor.getString(cursor.getColumnIndex("explanation")));
             tmp.setLevel(cursor.getColumnIndex("level"));
             mylist.add(tmp);
-        }
+            Cursor cursor3=db.query("rememberwords",new String[]{"word as _id"}, "_id = ?", new String[]{tmp.getWord()},null,null,null);
+            if (cursor3.getCount()==0){
+                values.put("word", tmp.getWord());
+                values.put("explanation",tmp.getExplanation());
+                values.put("level",tmp.getLevel());
+                db.insert("rememberwords",null,values);
+                values.clear();
+            }
 
+        }
         cursor.moveToFirst();
         adapter=new Myadapter(mylist,this);
         listview.setAdapter(adapter);
+
+
     }
 
     @Override

@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     Toolbar toolbar;
     private Context mContext;
     private boolean[] checkItems;
-    Uri uri;
+    Uri uri,uri2;
     ContentResolver resolver;
     private AlertDialog alertDialog = null;
     private AlertDialog.Builder dialogBuilder = null;
