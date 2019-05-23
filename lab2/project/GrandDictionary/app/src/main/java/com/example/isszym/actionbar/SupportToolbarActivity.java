@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -13,12 +14,14 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CheckedTextView;
 import android.widget.CursorAdapter;
@@ -47,6 +50,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static com.example.isszym.actionbar.R.id.textView;
 
@@ -55,7 +59,9 @@ public class SupportToolbarActivity extends AppCompatActivity {
     private Toolbar mToolbar;
     ContentResolver resolver;
     SimpleCursorAdapter adapter;
+    SimpleCursorAdapter adapter2,adapter3;
     Cursor cursor;
+    Cursor cursor2,cursor3;
     Uri uri;
     TextView textViewbottom;
     private Context mContext;
@@ -63,18 +69,16 @@ public class SupportToolbarActivity extends AppCompatActivity {
     private boolean isopen = true;
     private AlertDialog alertDialog = null;
     private AlertDialog.Builder dialogBuilder = null;
+    int flag = 0, flag2 = 0;
+    int nowheight;
     CheckedTextView textView2;
-
+    List<TextView> listguard;
     private HorizontalScrollView horizontalScrollView;
     private LinearLayout container;
     private String alphabet[] = new String[]{" ", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
     private ArrayList<String> data = new ArrayList<>();
     private TextView testTextViewguard;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
+    String guardword;
 
 
     @Override
@@ -96,19 +100,34 @@ public class SupportToolbarActivity extends AppCompatActivity {
         resolver = getContentResolver();
         listview = (ListView) findViewById(R.id.listview);
 //        Cursor cursor=dbHelper.getReadableDatabase().rawQuery("select word as _id from dictionary;",null);
-        cursor = resolver.query(uri, new String[]{"word as _id"}, null, null, null);
+        cursor = resolver.query(uri, new String[]{"word as _id,explanation"}, null, null, "_id");
+        cursor2 = resolver.query(uri, new String[]{"word as _id,explanation"}, null, null, "_id");
         adapter = new SimpleCursorAdapter(this, R.layout.item, cursor, new String[]{"_id"}, new int[]{R.id.word}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+        adapter2 = new SimpleCursorAdapter(this, R.layout.item2, cursor2, new String[]{"_id", "explanation"}, new int[]{R.id.word2, R.id.subex}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         listview.setAdapter(adapter);
-
         textViewbottom = (TextView) findViewById(textView);
+        ViewGroup.LayoutParams params2 = listview.getLayoutParams();
+        final int heighttmp=params2.height;
+        Resources resources = this.getResources();
+        DisplayMetrics dm = resources.getDisplayMetrics();
+        int height2 = dm.heightPixels;
+        params2.height = height2 - 20;
+        listview.setLayoutParams(params2);
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TextView nowclick = (TextView) view.findViewById(R.id.word);
-                String tmpword = nowclick.getText().toString();
-                Cursor cursor2 = resolver.query(uri, new String[]{"word as _id,explanation,level"}, " _id=?", new String[]{tmpword}, null);
-                cursor2.moveToFirst();
-                textViewbottom.setText(tmpword + "\n" + cursor2.getString(cursor2.getColumnIndex("explanation")));
+                if (flag == 0) {
+                    ViewGroup.LayoutParams params3 = listview.getLayoutParams();
+                    params3.height=heighttmp;
+                    listview.setLayoutParams(params3);
+                    TextView nowclick = (TextView) view.findViewById(R.id.word);
+                    String tmpword = nowclick.getText().toString();
+                    Cursor cursor2 = resolver.query(uri, new String[]{"word as _id,explanation,level"}, " _id=?", new String[]{tmpword}, null);
+                    cursor2.moveToFirst();
+                    textViewbottom.setText(tmpword + "\n" + cursor2.getString(cursor2.getColumnIndex("explanation")));
+                }
+                ;
             }
         });
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -116,8 +135,12 @@ public class SupportToolbarActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 PopupMenu popup = new PopupMenu(SupportToolbarActivity.this, view);
                 popup.getMenuInflater().inflate(R.menu.menu_pop, popup.getMenu());
-                TextView nowclick = (TextView) view.findViewById(R.id.word);
-                final int position = i;
+                TextView nowclick;
+                if (flag == 0) {
+                    nowclick = (TextView) view.findViewById(R.id.word);
+                } else {
+                    nowclick = (TextView) view.findViewById(R.id.word2);
+                }
                 tmpword = nowclick.getText().toString();
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -136,13 +159,10 @@ public class SupportToolbarActivity extends AppCompatActivity {
                 popup.show();
                 return true;
             }
-
         });
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
-    public void setguard(){
+
+    public void setguard() {
         Collections.addAll(data, alphabet);
         horizontalScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
         container = (LinearLayout) findViewById(R.id.horizontalScrollViewItemContainer);
@@ -150,53 +170,42 @@ public class SupportToolbarActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.CENTER;
         layoutParams.setMargins(20, 10, 20, 10);
-        for (int i = 0; i < data.size(); i++)
-        {
+        for (int i = 0; i < data.size(); i++) {
             TextView textView = new TextView(this);
             textView.setText(data.get(i));
             textView.setTextSize(15);
             textView.setWidth(40);
             textView.setGravity(Gravity.CENTER);
-            textView.setBackgroundColor(Color.rgb(255 ,228, 225));
+            textView.setBackgroundColor(Color.rgb(255, 228, 225));
             textView.setLayoutParams(layoutParams);
+
+            final int tmp = i;
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    view.setBackgroundColor(Color.rgb(187, 255, 255));
+                    for (int j = 0; j < container.getChildCount(); j++) {
+                        if (tmp == j) continue;
+                        container.getChildAt(j).setBackgroundColor(Color.rgb(255, 228, 225));
+                    }
+                    guardword = data.get(tmp);
+                    if (guardword.equals(" ")) {
+                        if (flag == 0)
+                            new RefreshList().execute();
+                        else
+                            new RefreshListexp().execute();
+                    }
+                    if (!guardword.equals(" ")) {
+                        if (flag == 0)
+                            new RefreshListguard().execute();
+                        else
+                            new RefreshListguardexp().execute();
+                    }
+                }
+            });
             container.addView(textView);
             container.invalidate();
         }
-    }
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("SupportToolbar Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
     }
 
     private class RefreshList extends AsyncTask<Void, Void, Cursor> {
@@ -212,6 +221,67 @@ public class SupportToolbarActivity extends AppCompatActivity {
         }
     }
 
+    private class RefreshListguard extends AsyncTask<Void, Void, Cursor> {
+        protected Cursor doInBackground(Void... params) {
+            Cursor newCursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, "word like ?", new String[]{guardword + "%"}, " _id");
+            return newCursor;
+        }
+
+        protected void onPostExecute(Cursor newCursor) {
+            adapter.changeCursor(newCursor);
+            cursor.close();
+            cursor = newCursor;
+        }
+    }
+
+    private class RefreshListexp extends AsyncTask<Void, Void, Cursor> {
+        protected Cursor doInBackground(Void... params) {
+            Cursor newCursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, null, null, " _id");
+            return newCursor;
+        }
+
+        protected void onPostExecute(Cursor newCursor) {
+            adapter2.changeCursor(newCursor);
+            cursor2.close();
+            cursor2 = newCursor;
+        }
+    }
+
+    private class RefreshListguardexp extends AsyncTask<Void, Void, Cursor> {
+        protected Cursor doInBackground(Void... params) {
+            Cursor newCursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, "word like ?", new String[]{guardword + "%"}, " _id");
+            return newCursor;
+        }
+        protected void onPostExecute(Cursor newCursor) {
+            adapter2.changeCursor(newCursor);
+            cursor2.close();
+            cursor2 = newCursor;
+        }
+    }
+
+    private class RefreshListlookfor extends AsyncTask<Void, Void, Cursor> {
+        protected Cursor doInBackground(Void... params) {
+            Cursor newCursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, "word like ?", new String[]{"%"+guardword + "%"}, " _id");
+            return newCursor;
+        }
+        protected void onPostExecute(Cursor newCursor) {
+            adapter.changeCursor(newCursor);
+            cursor.close();
+            cursor = newCursor;
+        }
+    }
+    private class RefreshListexplookfor extends AsyncTask<Void, Void, Cursor> {
+        protected Cursor doInBackground(Void... params) {
+            Cursor newCursor = resolver.query(uri, new String[]{"word as _id,explanation,level"}, "word like ?", new String[]{"%"+guardword + "%"}, " _id");
+
+            return newCursor;
+        }
+        protected void onPostExecute(Cursor newCursor) {
+            adapter2.changeCursor(newCursor);
+            cursor2.close();
+            cursor2 = newCursor;
+        }
+    }
 
     public void simpledelete() {
         dialogBuilder = new AlertDialog.Builder(mContext);
@@ -229,6 +299,7 @@ public class SupportToolbarActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         resolver.delete(uri, "word=?", new String[]{tmpword});
                         new RefreshList().execute();
+                        new RefreshListexp().execute();
                         Toast.makeText(mContext, "删除成功", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -237,14 +308,14 @@ public class SupportToolbarActivity extends AppCompatActivity {
     }
 
     public void simplecorrect() {
-        TableLayout wordadd = (TableLayout) getLayoutInflater()
+        TableLayout wordcorrect = (TableLayout) getLayoutInflater()
                 .inflate(R.layout.correctword, null);
         dialogBuilder = new AlertDialog.Builder(mContext);
         alertDialog = dialogBuilder
                 // 设置对话框标题
                 .setTitle("修改单词")
                 // 设置对话框显示的View对象
-                .setView(wordadd)
+                .setView(wordcorrect)
                 .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -262,14 +333,43 @@ public class SupportToolbarActivity extends AppCompatActivity {
                         contentValues.put("level", Integer.parseInt(String.valueOf(level.getText())));
                         resolver.update(uri, contentValues, "word=?", new String[]{tmpword});
                         new RefreshList().execute();
+                        new RefreshListexp().execute();
                         Toast.makeText(mContext, "修改成功", Toast.LENGTH_SHORT).show();
                         textViewbottom.setText(tmpword + "\n" + String.valueOf(wordex.getText()));
-
                     }
                 })
                 .create();             // 创建AlertDialog对象
         alertDialog.show();
+    }
 
+    public void lookforword(){
+        TableLayout wordfind = (TableLayout) getLayoutInflater()
+                .inflate(R.layout.lookfor, null);
+        dialogBuilder = new AlertDialog.Builder(mContext);
+        alertDialog = dialogBuilder
+                // 设置对话框标题
+                .setTitle("查询单词")
+                // 设置对话框显示的View对象
+                .setView(wordfind)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(mContext, "取消查询", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EditText wordex = (EditText) alertDialog.findViewById(R.id.lookforword);
+                        guardword=String.valueOf(wordex.getText());
+                        Log.v("lll",guardword);
+                        new RefreshListlookfor().execute();
+                        new RefreshListexplookfor().execute();
+                        Toast.makeText(mContext, "查询成功", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .create();             // 创建AlertDialog对象
+        alertDialog.show();
     }
 
     public void addword() {
@@ -301,6 +401,7 @@ public class SupportToolbarActivity extends AppCompatActivity {
                         if (cursor.getCount() == 0) {
                             resolver.insert(uri, contentValues);
                             new RefreshList().execute();
+                            new RefreshListexp().execute();
                             Toast.makeText(mContext, "添加成功", Toast.LENGTH_SHORT).show();
                         } else {
                             textView2 = (CheckedTextView) alertDialog.findViewById(R.id.cb);
@@ -378,23 +479,44 @@ public class SupportToolbarActivity extends AppCompatActivity {
                 }
             }
         }.start();
-        Toast.makeText(this, "下载完成", Toast.LENGTH_SHORT).show();
+
 
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        ViewGroup.LayoutParams params = listview.getLayoutParams();
+
         switch (item.getItemId()) {
             case R.id.addword:
                 addword();
-
+                break;
+            case R.id.lookfor:
+                lookforword();
                 break;
             case R.id.menu1:
                 getdata();
                 break;
             case R.id.menu2:
-                Toast.makeText(this, "menu2", Toast.LENGTH_SHORT).show();
-                break;
+                if (item.isChecked()) {
+                    flag = 0;
+                    listview.setAdapter(adapter);
+                    params.height = nowheight;
+                    listview.setLayoutParams(params);
+                    item.setChecked(false);
+                } else {
+                    flag = 1;
+                    listview.setAdapter(adapter2);
+                    nowheight = params.height;
+                    Resources resources = this.getResources();
+                    DisplayMetrics dm = resources.getDisplayMetrics();
+                    int height2 = dm.heightPixels;
+                    params.height = height2 - 20;
+                    listview.setLayoutParams(params);
+                    textViewbottom.setEnabled(false);
+                    item.setChecked(true);
+                    new RefreshList().execute();
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }

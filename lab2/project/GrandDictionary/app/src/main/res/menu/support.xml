@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action1"
+    <item android:id="@+id/lookfor"
         android:title="action1"
         android:icon="@android:drawable/ic_menu_search"
         app:showAsAction="ifRoom" />
@@ -16,6 +16,7 @@
     <item android:id="@+id/menu2"
         android:title="显示词义"
         android:checkable="true"
+        android:checked="false"
         android:orderInCategory="110"
-        app:showAsAction="never"/>
+       />
 </menu>
