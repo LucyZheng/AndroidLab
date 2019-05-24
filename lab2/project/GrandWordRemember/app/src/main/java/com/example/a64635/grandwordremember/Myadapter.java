@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -20,12 +21,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import static android.R.attr.checked;
+import static android.graphics.Color.rgb;
 
 /**
  * Created by 64635 on 2019/5/20.
  */
 
 public class Myadapter extends BaseAdapter {
+    public Map<String, String> user_choose = new HashMap<>();
+    public int judge=0;
     private ArrayList<WordRec> list;
     private Context mContext;
     private SparseIntArray ifcheck=new SparseIntArray();
@@ -115,10 +119,27 @@ public class Myadapter extends BaseAdapter {
         holder.rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
             @Override
             public void onCheckedChanged(RadioGroup rg,int index){
-                if (index>-1) ifcheck.put(position,index);
+                if (index>-1) {
+                    ifcheck.put(position,index);
+                    user_choose.put(list.get(position).getWord(), ((RadioButton)rg.findViewById(index)).getText().toString());
+                }
                 else if(ifcheck.indexOfKey(position) > -1) ifcheck.removeAt(ifcheck.indexOfKey(position));
             }
         });
+        holder.rb1.setBackgroundColor(rgb(250,250,250));
+        holder.rb2.setBackgroundColor(rgb(250,250,250));
+        holder.rb3.setBackgroundColor(rgb(250,250,250));
+        holder.rb4.setBackgroundColor(rgb(250,250,250));
+        int position2=list2.indexOf(position);
+        if (judge==1){
+            if (position2==0)
+                holder.rb1.setBackgroundColor(rgb(193,255,193));
+            else if (position2==1)
+                holder.rb2.setBackgroundColor(rgb(193,255,193));
+            else if (position2==2)
+                holder.rb3.setBackgroundColor(rgb(193,255,193));
+            else holder.rb4.setBackgroundColor(rgb(193,255,193));
+        }
         return convertView;
     }
 
