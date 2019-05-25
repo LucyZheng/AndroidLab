@@ -122,6 +122,10 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.add_word) {
             customView();
         }
+        else if (id==R.id.stat){
+            Intent intent=new Intent(this,AnalysisActivity.class);
+            startActivity(intent);
+        }
         return super.onOptionsItemSelected(item);
     }
 

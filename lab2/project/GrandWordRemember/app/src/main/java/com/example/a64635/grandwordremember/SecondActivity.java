@@ -34,7 +34,7 @@ import static com.example.a64635.grandwordremember.R.id.listview;
 
 public class SecondActivity extends AppCompatActivity {
     Toolbar toolbar;
-    Database dbHelper;
+    public Database dbHelper;
     ContentResolver resolver;
     Myadapter adapter;
     ListView listview;
@@ -125,9 +125,9 @@ public class SecondActivity extends AppCompatActivity {
                     values2.put("test_count",1);
                     db.update("rememberwords",values2,"word=?",new String[]{tmp.getWord()});
                     values2.clear();
-                    if (j<nowmap.size()){
+                    if (nowmap.get(tmp.getWord())!=null){
                         String tmpexp=nowmap.get(tmp.getWord());
-                        String nowexp=tmp.getExplanation();
+                        String nowexp=tmp.getExplanation().substring(tmp.getExplanation().length()-tmpexp.length());
                         if (tmpexp.equals(nowexp)) {
                             values2.put("correct_count",1);
                             db.update("rememberwords",values2,"word=?",new String[]{tmp.getWord()});
@@ -158,8 +158,7 @@ public class SecondActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
+                this.finish();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
