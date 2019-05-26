@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -36,7 +38,7 @@ public class Myadapter extends BaseAdapter {
     LayoutInflater inflater;
     Map<Object, ArrayList<Object>> map = new HashMap<>();
     Map<String, String> sel = new HashMap<>();
-
+    public String color="Black";
 
 
     public Myadapter(ArrayList<WordRec> list, Context mContext) {
@@ -114,6 +116,34 @@ public class Myadapter extends BaseAdapter {
         holder.rb4.setText(trans(list.get((int)list2.get(3)).getExplanation()));
         holder.rg.setOnCheckedChangeListener(null);
         holder.rg.clearCheck();
+        switch (color){
+            case "Black":
+                holder.rb1.setTextColor(Color.BLACK);
+                holder.rb2.setTextColor(Color.BLACK);
+                holder.rb3.setTextColor(Color.BLACK);
+                holder.rb4.setTextColor(Color.BLACK);
+                break;
+            case "Red":
+                holder.rb1.setTextColor(Color.RED);
+                holder.rb2.setTextColor(Color.RED);
+                holder.rb3.setTextColor(Color.RED);
+                holder.rb4.setTextColor(Color.RED);
+                break;
+            case "Green":
+                holder.rb1.setTextColor(Color.GREEN);
+                holder.rb2.setTextColor(Color.GREEN);
+                holder.rb3.setTextColor(Color.GREEN);
+                holder.rb4.setTextColor(Color.GREEN);
+                break;
+            case "Blue":
+                holder.rb1.setTextColor(Color.BLUE);
+                holder.rb2.setTextColor(Color.BLUE);
+                holder.rb3.setTextColor(Color.BLUE);
+                holder.rb4.setTextColor(Color.BLUE);
+                break;
+
+        }
+
         if(ifcheck.indexOfKey(position)!=-1)  holder.rg.check(ifcheck.get(position));
         else holder.rg.clearCheck();
         holder.rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){

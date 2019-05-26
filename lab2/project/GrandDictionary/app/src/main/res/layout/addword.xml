@@ -48,7 +48,7 @@
 	</TableRow>
 	<TableRow>
 		<CheckedTextView
-			android:id="@+id/cb"
+			android:id="@+id/cb1"
 			android:text="是否覆盖"
 			android:checkMark="?android:attr/listChoiceIndicatorMultiple"
 			android:gravity="center"

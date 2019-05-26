@@ -4,10 +4,12 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -41,6 +43,7 @@ public class SecondActivity extends AppCompatActivity {
     Uri uri_user;
     private Context mContext;
     int flag=0;
+    public int color=0;
     SQLiteDatabase db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,7 @@ public class SecondActivity extends AppCompatActivity {
         toolbar.setSubtitle("单词测验");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//左侧添加一个默认的返回图标
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
+        final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String urii = "content://com.example.providers.firstprovider1/";
         mContext=this;
         dbHelper = new Database(this, "rememberword.db", null, 1);
@@ -59,7 +63,7 @@ public class SecondActivity extends AppCompatActivity {
         uri_user = Uri.parse(urii);
         resolver = getContentResolver();
         listview = (ListView) findViewById(R.id.listview);
-        Cursor cursor = resolver.query(uri_user, new String[]{"word as _id,explanation,level"}, null, null, "_id limit 500");
+        Cursor cursor = resolver.query(uri_user, new String[]{"word as _id,explanation,level"}, null, null, "_id");
         final ArrayList mylist = new ArrayList<WordRec>();
         db = dbHelper.getWritableDatabase();
         Cursor cursor2 = db.query("rememberwords", null, null, null, null, null, null);
@@ -77,6 +81,8 @@ public class SecondActivity extends AppCompatActivity {
                 tmp.setExplanation(cursor.getString(cursor.getColumnIndex("explanation")));
                 tmp.setLevel(cursor.getColumnIndex("level"));
                 mylist.add(tmp);
+                String num2="";
+                int num =Integer.parseInt(settings.getString("edittext_key", num2)) ;
                 Cursor cursor3 = db.query("rememberwords", new String[]{"word as _id"}, "_id = ?", new String[]{tmp.getWord()}, null, null, null);
                 if (cursor3.getCount() == 0) {
                     values.put("word", tmp.getWord());
@@ -86,7 +92,7 @@ public class SecondActivity extends AppCompatActivity {
                     i+=1;
                     values.clear();
                 }
-                if(i==10) break;
+                if(i==num) break;
 
             }
         }
@@ -110,6 +116,7 @@ public class SecondActivity extends AppCompatActivity {
         }
         cursor.moveToFirst();
         adapter = new Myadapter(mylist, this);
+        adapter.color=settings.getString("list_key", "");
         listview.setAdapter(adapter);
 
         final Button submit=(Button)findViewById(R.id.submit);
@@ -119,22 +126,26 @@ public class SecondActivity extends AppCompatActivity {
                 adapter.judge=1;
                 adapter.notifyDataSetChanged();
                 Map<String, String> nowmap=adapter.user_choose;
-                for (int j=0;j<mylist.size();j++){
-                    WordRec tmp=(WordRec) mylist.get(j);
-                    ContentValues values2=new ContentValues();
-                    values2.put("test_count",1);
-                    db.update("rememberwords",values2,"word=?",new String[]{tmp.getWord()});
-                    values2.clear();
-                    if (nowmap.get(tmp.getWord())!=null){
-                        String tmpexp=nowmap.get(tmp.getWord());
-                        String nowexp=tmp.getExplanation().substring(tmp.getExplanation().length()-tmpexp.length());
-                        if (tmpexp.equals(nowexp)) {
-                            values2.put("correct_count",1);
-                            db.update("rememberwords",values2,"word=?",new String[]{tmp.getWord()});
-                            values2.clear();
+                if (settings.getBoolean("checkbox_key",true)){
+                    for (int j=0;j<mylist.size();j++){
+                        WordRec tmp=(WordRec) mylist.get(j);
+                        ContentValues values2=new ContentValues();
+                        values2.put("test_count",1);
+                        db.update("rememberwords",values2,"word=?",new String[]{tmp.getWord()});
+                        values2.clear();
+                        Log.v(";;;",String.valueOf(settings.getBoolean("checkbox_key",true)));
+                        if (nowmap.get(tmp.getWord())!=null){
+                            String tmpexp=nowmap.get(tmp.getWord());
+                            String nowexp=tmp.getExplanation().substring(tmp.getExplanation().length()-tmpexp.length());
+                            if (tmpexp.equals(nowexp)) {
+                                values2.put("correct_count",1);
+                                db.update("rememberwords",values2,"word=?",new String[]{tmp.getWord()});
+                                values2.clear();
+                            }
                         }
                     }
                 }
+
                 submit.setVisibility(View.INVISIBLE);
             }
 
@@ -159,6 +170,10 @@ public class SecondActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 this.finish();
+                break;
+            case R.id.start_review:
+                Intent intent = new Intent(this, ReviewActivity.class);
+                startActivity(intent);
                 break;
             default:
                 return super.onOptionsItemSelected(item);

@@ -4,6 +4,7 @@
     tools:context="com.example.a64635.grandwordremember.MainActivity">
     <item android:id="@+id/entertest"
         android:title="进入测验"
+        android:icon="@mipmap/text"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/add_word"

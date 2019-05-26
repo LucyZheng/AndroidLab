@@ -43,10 +43,11 @@ public class AnalysisActivity extends AppCompatActivity {
         setContentView(R.layout.activity_analysis);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);//左侧添加一个默认的返回图标
-        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
+
         toolbar.setTitle("学霸背单词");
         toolbar.setSubtitle("测验统计");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);//左侧添加一个默认的返回图标
+        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
         listView=(ListView) findViewById(R.id.listviewanalysis);
         dbHelper = new Database(this, "rememberword.db", null, 1);
         dbHelper.getWritableDatabase();

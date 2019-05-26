@@ -430,7 +430,7 @@ public class SupportToolbarActivity extends AppCompatActivity {
                             new RefreshListexp().execute();
                             Toast.makeText(mContext, "添加成功", Toast.LENGTH_SHORT).show();
                         } else {
-                            textView2 = (CheckedTextView) alertDialog.findViewById(R.id.cb);
+                            textView2 = (CheckedTextView) alertDialog.findViewById(R.id.cb1);
                             if (textView2.isChecked()) {
                                 resolver.update(uri, contentValues, "word=?", new String[]{String.valueOf(newword.getText())});
                                 Toast.makeText(mContext, "覆盖成功", Toast.LENGTH_SHORT).show();
@@ -471,7 +471,10 @@ public class SupportToolbarActivity extends AppCompatActivity {
         wordRec.setLevel(Integer.parseInt(jsonObject.optString("level")));
         return wordRec;
     }
-
+    public void clicker(View v) {
+        CheckedTextView checkedTextView = (CheckedTextView) v;
+        checkedTextView.toggle();
+    }
     public void getdata() {
         show(100);
         new Thread() {

@@ -126,6 +126,13 @@ public class MainActivity extends AppCompatActivity {
             Intent intent=new Intent(this,AnalysisActivity.class);
             startActivity(intent);
         }
+        else if (id==R.id.set){
+            Intent intent=new Intent(this,PreferenceActivity.class);
+            startActivity(intent);
+        }
+        else if (id==R.id.find_word){
+
+        }
         return super.onOptionsItemSelected(item);
     }
 
