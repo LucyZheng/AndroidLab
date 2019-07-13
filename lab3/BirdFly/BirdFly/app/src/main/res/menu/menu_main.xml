@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.a64635.birdfly.MainActivity">
+    <item
+        android:id="@+id/start"
+        android:orderInCategory="100"
+        android:title="开始录像"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/end"
+        android:orderInCategory="100"
+        android:title="结束录像"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/replay"
+        android:orderInCategory="100"
+        android:title="录像回放"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/end_replay"
+        android:orderInCategory="100"
+        android:title="结束回放"
+        app:showAsAction="never" />
+</menu>
